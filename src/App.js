@@ -77,17 +77,24 @@ class App extends React.Component {
         return <>{(this.state.score.correct / this.state.score.guesses) * 100}</>;
     }
 
-    getRandomCountryShortHands(count) {
+    getRandomCountryShortHands(count, answerCountry) {
         const countryShortHands = [];
 
         while (countryShortHands.length < count) {
-            const nextCountryIndex = Math.floor(Math.random() * COUNTRY_COUNT);
+            const nextCountryIndex = Math.floor(Math.random() * COUNTRY_COUNT - 1);
             const country = Object.keys(countries)[nextCountryIndex];
 
-            if (!countryShortHands.includes(country)) {
+            console.log(countryShortHands, country)
+
+            if (!countryShortHands.includes(country) && country !== answerCountry) {
+                console.log('adding')
                 countryShortHands.push(country);
+            } else {
+                console.log('skipping duplicate')
             }
         }
+
+        console.log(countries);
 
         if (count === 1) {
             return countryShortHands[0];
@@ -97,10 +104,7 @@ class App extends React.Component {
     }
 
     getChoices(correctAnswer) {
-        let choices = this.shuffle([...this.getRandomCountryShortHands(CHOICE_COUNT -1), correctAnswer]);
-
-        console.log(choices);
-        return choices;
+        return this.shuffle([...this.getRandomCountryShortHands(CHOICE_COUNT - 1, correctAnswer), correctAnswer]);
     }
 
     hasLoaded() {
