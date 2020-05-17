@@ -3,14 +3,14 @@ import './App.css';
 import countries from './countries.json';
 
 const COUNTRY_COUNT = Object.keys(countries).length;
-const CHOICE_COUNT = 4;
+const CHOICE_COUNT = 8;
 
 class App extends React.Component {
 
     constructor(props) {
         super(props);
 
-        const firstCountryChoice = this.getRandomCountryShortHand();
+        const firstCountryChoice = this.getRandomCountryShortHands(1);
         this.state = {
             score: {
                 guesses: 0, correct: 0
@@ -44,13 +44,13 @@ class App extends React.Component {
     }
 
     getCountryPanel(countryKey, isPrevious) {
-        if(countryKey == null) {
+        if (countryKey == null) {
             return <p>No previous guesses!</p>
         }
 
         const country = countries[countryKey];
 
-        if(isPrevious) {
+        if (isPrevious) {
             return <div>
                 <img src={this.getFlag(countryKey)} className='previous-flag' alt="flag"/>
                 <p>Capital: {country.capital} | Correct Answer: {country.name}</p>
@@ -77,15 +77,30 @@ class App extends React.Component {
         return <>{(this.state.score.correct / this.state.score.guesses) * 100}</>;
     }
 
-    getRandomCountryShortHand() {
-        const nextCountryIndex = Math.floor(Math.random() * COUNTRY_COUNT);
-        return Object.keys(countries)[nextCountryIndex];
+    getRandomCountryShortHands(count) {
+        const countryShortHands = [];
+
+        while (countryShortHands.length < count) {
+            const nextCountryIndex = Math.floor(Math.random() * COUNTRY_COUNT);
+            const country = Object.keys(countries)[nextCountryIndex];
+
+            if (!countryShortHands.includes(country)) {
+                countryShortHands.push(country);
+            }
+        }
+
+        if (count === 1) {
+            return countryShortHands[0];
+        } else {
+            return countryShortHands;
+        }
     }
 
     getChoices(correctAnswer) {
-        let incorrectAnswers = [...Array(CHOICE_COUNT - 1).keys()].map(_ => this.getRandomCountryShortHand());
+        let choices = this.shuffle([...this.getRandomCountryShortHands(CHOICE_COUNT -1), correctAnswer]);
 
-        return [...incorrectAnswers, correctAnswer];
+        console.log(choices);
+        return choices;
     }
 
     hasLoaded() {
@@ -103,7 +118,7 @@ class App extends React.Component {
         }
 
         const previousCountry = this.state.country;
-        const nextCountry = this.getRandomCountryShortHand();
+        const nextCountry = this.getRandomCountryShortHands(1);
 
         this.setState({
             country: nextCountry,
@@ -111,6 +126,13 @@ class App extends React.Component {
             score,
             previousCountry
         });
+    }
+
+    shuffle(list) {
+        return list
+            .map((a) => ({sort: Math.random(), value: a}))
+            .sort((a, b) => a.sort - b.sort)
+            .map((a) => a.value)
     }
 }
 
