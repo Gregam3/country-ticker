@@ -22,6 +22,7 @@ class App extends React.Component {
     }
 
     render() {
+        console.log(this.state.choices)
         if (this.hasLoaded()) {
             return <div className="App">
                 <header className="App-header">
@@ -84,17 +85,10 @@ class App extends React.Component {
             const nextCountryIndex = Math.floor(Math.random() * COUNTRY_COUNT - 1);
             const country = Object.keys(countries)[nextCountryIndex];
 
-            console.log(countryShortHands, country)
-
-            if (!countryShortHands.includes(country) && country !== answerCountry) {
-                console.log('adding')
+            if (!countryShortHands.includes(country) && country !== answerCountry && country !== undefined) {
                 countryShortHands.push(country);
-            } else {
-                console.log('skipping duplicate')
             }
         }
-
-        console.log(countries);
 
         if (count === 1) {
             return countryShortHands[0];
@@ -108,7 +102,6 @@ class App extends React.Component {
     }
 
     hasLoaded() {
-        console.log("loading check", this.state.country, this.state.choices)
         return this.state.country != null && this.state.choices != null;
     }
 
