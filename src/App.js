@@ -6,7 +6,6 @@ const COUNTRY_COUNT = Object.keys(countries).length;
 const CHOICE_COUNT = 8;
 
 class App extends React.Component {
-
     constructor(props) {
         super(props);
 
@@ -19,10 +18,13 @@ class App extends React.Component {
             choices: this.getChoices(firstCountryChoice),
             previousCountry: null
         };
+
+        document.addEventListener("keydown", this.keypressToChoice);
     }
 
     render() {
-        console.log(this.state.choices)
+        let choiceCount = 1;
+
         if (this.hasLoaded()) {
             return <div className="App">
                 <header className="App-header">
@@ -34,14 +36,30 @@ class App extends React.Component {
                 </header>
                 <div className="answers">
                     {this.state.choices.map(countryChoice => <button
-                        style={{fontSize: '50px', width: '50%', float: 'right', height: '100px'}}
+                        style={{fontSize: '50px', width: '50%', float: 'left', height: '100px'}}
                         onClick={() => this.guess(countryChoice)}>
-                        {countries[countryChoice].name}</button>)}
+                        {choiceCount++ + ' - ' + countries[countryChoice].name}</button>)}
                 </div>
             </div>
         } else {
             return <p>Loading...</p>
         }
+    }
+
+    keypressToChoice = event => {
+        let key = event.key * 1;
+
+        console.log(key)
+
+        if (key > 0 && key <= CHOICE_COUNT) {
+            console.log(key, this.state.choices)
+            this.guess(this.state.choices[key - 1]);
+        }
+    }
+
+    indexToChoice = index => {
+        console.log(this.state.choiceKeymap)
+        return this.state.choiceKeymap[index];
     }
 
     getCountryPanel(countryKey, isPrevious) {
@@ -98,7 +116,18 @@ class App extends React.Component {
     }
 
     getChoices(correctAnswer) {
-        return this.shuffle([...this.getRandomCountryShortHands(CHOICE_COUNT - 1, correctAnswer), correctAnswer]);
+        const choices = [...this.getRandomCountryShortHands(CHOICE_COUNT - 1, correctAnswer), correctAnswer].sort();
+        let i = 1;
+
+        let choiceKeymap = {};
+
+        for (let choicesKey in choices) {
+            choiceKeymap[i++] = choicesKey;
+        }
+
+        this.setState({choiceKeymap});
+
+        return choices;
     }
 
     hasLoaded() {
@@ -123,13 +152,6 @@ class App extends React.Component {
             score,
             previousCountry
         });
-    }
-
-    shuffle(list) {
-        return list
-            .map((a) => ({sort: Math.random(), value: a}))
-            .sort((a, b) => a.sort - b.sort)
-            .map((a) => a.value)
     }
 }
 
