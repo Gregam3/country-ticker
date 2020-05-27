@@ -5,11 +5,27 @@ import countries from './countries.json';
 const COUNTRY_COUNT = Object.keys(countries).length;
 const CHOICE_COUNT = 8;
 
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const temp = array[i];
+        array[i] = array[j];
+        array[j] = temp;
+    }
+
+    return array;
+}
+
 class App extends React.Component {
     constructor(props) {
         super(props);
 
-        const firstCountryChoice = this.getRandomCountryShortHands(1);
+        this.countryIndex = 0;
+        this.countryIndexMap = {};
+        this.populateCountryIndexMap();
+
+        const firstCountryChoice = this.getNextCountry();
+
         this.state = {
             score: {
                 guesses: 0, correct: 0
@@ -22,6 +38,16 @@ class App extends React.Component {
         document.addEventListener("keydown", this.keypressToChoice);
     }
 
+    populateCountryIndexMap() {
+        let randomCountryIndexes = shuffleArray([...Array(COUNTRY_COUNT).keys()]);
+
+        for (let countriesKey in countries) {
+            console.log(randomCountryIndexes)
+            this.countryIndexMap[randomCountryIndexes[0]] = countriesKey;
+            randomCountryIndexes.shift();
+        }
+    }
+
     render() {
         let choiceCount = 1;
 
@@ -31,7 +57,7 @@ class App extends React.Component {
                     Previous country:
                     {this.getCountryPanel(this.state.previousCountry, true)}
                     <p>Score: {this.state.score.correct + '/' + this.state.score.guesses}
-                        &nbsp; ({this.getScorePercentage()})%</p>
+                        &nbsp; ({this.getScorePercentage()})% | Countries remaining {COUNTRY_COUNT - this.countryIndex}</p>
                     {this.getCountryPanel(this.state.country, false)}
                 </header>
                 <div className="answers">
@@ -55,11 +81,6 @@ class App extends React.Component {
             console.log(key, this.state.choices)
             this.guess(this.state.choices[key - 1]);
         }
-    }
-
-    indexToChoice = index => {
-        console.log(this.state.choiceKeymap)
-        return this.state.choiceKeymap[index];
     }
 
     getCountryPanel(countryKey, isPrevious) {
@@ -144,7 +165,7 @@ class App extends React.Component {
         }
 
         const previousCountry = this.state.country;
-        const nextCountry = this.getRandomCountryShortHands(1);
+        const nextCountry = this.getNextCountry();
 
         this.setState({
             country: nextCountry,
@@ -152,6 +173,16 @@ class App extends React.Component {
             score,
             previousCountry
         });
+    }
+
+    getNextCountry() {
+        if(this.countryIndex === COUNTRY_COUNT) {
+            this.countryIndex = 0;
+            alert("You have completed 1 loop of all countries!")
+            this.populateCountryIndexMap();
+        }
+
+        return this.countryIndexMap[this.countryIndex++];
     }
 }
 
