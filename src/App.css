@@ -1,6 +1,6 @@
 .App {
   text-align: center;
-  font-size: 40pt;
+  background-color: #282c34;
 }
 
 .flag {
@@ -23,5 +23,18 @@
 
 .answers {
   flex-direction: row;
+  background-color: #282c34;
+  font-size: 40pt;
+}
+
+.suggestion {
+  font-size: 20px;
+  color: white;
+  padding: 0;
+  margin: 0;
+  background-color: #282c34;
+}
+
+.background-color {
   background-color: #282c34;
 }

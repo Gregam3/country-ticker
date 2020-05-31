@@ -1,9 +1,28 @@
 import React from 'react';
 import './App.css';
 import countries from './countries.json';
+import Autosuggest from 'react-autosuggest';
 
 const COUNTRY_COUNT = Object.keys(countries).length;
 const CHOICE_COUNT = 8;
+
+function formatCountryName(abbreviation) {
+    let countryName = countries[abbreviation].name;
+    countryName.replace(".", "");
+    countryName.replace("ã", "a");
+    countryName.replace("é", "e");
+    countryName.replace("Å", "A");
+    countryName = countryName.toUpperCase();
+    return countryName;
+}
+
+const COUNTRY_SUGGESTIONS = Object.keys(countries).map(abbreviation => {
+    return {
+        countryName: formatCountryName(abbreviation),
+        abbreviation
+    }
+
+});
 
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
@@ -32,39 +51,60 @@ class App extends React.Component {
             },
             country: firstCountryChoice,
             choices: this.getChoices(firstCountryChoice),
-            previousCountry: null
+            previousCountry: null,
+            settings: {
+                multipleChoice: false
+            },
+            countryInput: '',
+            suggestions: COUNTRY_SUGGESTIONS
         };
 
-        document.addEventListener("keydown", this.keypressToChoice);
+        document.addEventListener("keydown", this.keyboardListener);
     }
 
     populateCountryIndexMap() {
         let randomCountryIndexes = shuffleArray([...Array(COUNTRY_COUNT).keys()]);
 
         for (let countriesKey in countries) {
-            console.log(randomCountryIndexes)
             this.countryIndexMap[randomCountryIndexes[0]] = countriesKey;
             randomCountryIndexes.shift();
         }
     }
 
     render() {
-        let choiceCount = 1;
-
         if (this.hasLoaded()) {
             return <div className="App">
                 <header className="App-header">
                     Previous country:
                     {this.getCountryPanel(this.state.previousCountry, true)}
                     <p>Score: {this.state.score.correct + '/' + this.state.score.guesses}
-                        &nbsp; ({this.getScorePercentage()})% | Countries remaining {COUNTRY_COUNT - this.countryIndex}</p>
+                        &nbsp; ({this.getScorePercentage()})% | Countries
+                        remaining {COUNTRY_COUNT - this.countryIndex}</p>
                     {this.getCountryPanel(this.state.country, false)}
                 </header>
-                <div className="answers">
-                    {this.state.choices.map(countryChoice => <button
-                        style={{fontSize: '50px', width: '50%', float: 'left', height: '100px'}}
-                        onClick={() => this.guess(countryChoice)}>
-                        {choiceCount++ + ' - ' + countries[countryChoice].name}</button>)}
+                <div className="background-color">
+                    {this.getAnswerInput()}
+                </div>
+                {/*FIXME*/}
+                <div className="background-color">
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
+                    <br/>
                 </div>
             </div>
         } else {
@@ -72,14 +112,57 @@ class App extends React.Component {
         }
     }
 
-    keypressToChoice = event => {
-        let key = event.key * 1;
+    getAnswerInput() {
+        if (this.state.settings.multipleChoice) {
+            let choiceIndex = 1;
+            return <div className="answers">
+                {this.state.choices.map(countryChoice => <button
+                    style={{fontSize: '50px', width: '50%', float: 'left', height: '100px'}}
+                    onClick={() => this.guess(countryChoice)}>
+                    {choiceIndex++ + ' - ' + countries[countryChoice].name}</button>)}
+            </div>;
+        } else {
+            return (
+                <Autosuggest
+                    theme={{fontSize: '50px'}}
+                    suggestions={this.state.suggestions}
+                    onSuggestionsFetchRequested={() =>
+                        this.setState(
+                            {
+                                suggestions: COUNTRY_SUGGESTIONS
+                                    .filter(suggestion => this.compareSuggestionWithAnswer(suggestion))
+                            }
+                        )}
+                    onSuggestionsClearRequested={() => this.setState({suggestions: []})}
+                    getSuggestionValue={suggestion => suggestion.countryName}
+                    renderSuggestion={suggestion => <div className="suggestion">{suggestion.countryName}</div>}
+                    inputProps={{
+                        placeholder: 'Country Name',
+                        value: this.state.countryInput,
+                        onChange: (event, {newValue}) => this.setState({countryInput: newValue})
+                    }}
+                />)
+        }
+    }
 
-        console.log(key)
+    compareSuggestionWithAnswer(suggestion) {
+        const looseAnswer = formatCountryName(this.state.countryInput);
 
-        if (key > 0 && key <= CHOICE_COUNT) {
-            console.log(key, this.state.choices)
-            this.guess(this.state.choices[key - 1]);
+        return suggestion.countryName.startsWith(looseAnswer);
+    }
+
+    keyboardListener = event => {
+        console.log(event)
+        if (event.key === "Enter") {
+            this.guess(this.state.suggestions[0].abbreviation);
+            this.setState({countryInput: ""});
+        } else {
+            let key = event.key * 1;
+
+            if (key > 0 && key <= CHOICE_COUNT) {
+                console.log(key, this.state.choices)
+                this.guess(this.state.choices[key - 1]);
+            }
         }
     }
 
@@ -176,7 +259,7 @@ class App extends React.Component {
     }
 
     getNextCountry() {
-        if(this.countryIndex === COUNTRY_COUNT) {
+        if (this.countryIndex === COUNTRY_COUNT) {
             this.countryIndex = 0;
             alert("You have completed 1 loop of all countries!")
             this.populateCountryIndexMap();
