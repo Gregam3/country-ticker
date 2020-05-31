@@ -6,19 +6,22 @@ import Autosuggest from 'react-autosuggest';
 const COUNTRY_COUNT = Object.keys(countries).length;
 const CHOICE_COUNT = 8;
 
-function formatCountryName(abbreviation) {
-    let countryName = countries[abbreviation].name;
-    countryName.replace(".", "");
-    countryName.replace("ã", "a");
-    countryName.replace("é", "e");
-    countryName.replace("Å", "A");
+function formatCountry(countryName) {
+    if(countryName.includes(".")) {
+        console.log(countryName.replace())
+    }
+    countryName = countryName.split(".").join('');
+    countryName = countryName.split(".").join("");
+    countryName = countryName.split("ã").join("");
+    countryName = countryName.split("é").join("");
+    countryName = countryName.split("Å").join("");
     countryName = countryName.toUpperCase();
     return countryName;
 }
 
 const COUNTRY_SUGGESTIONS = Object.keys(countries).map(abbreviation => {
     return {
-        countryName: formatCountryName(abbreviation),
+        countryName: countries[abbreviation].name,
         abbreviation
     }
 
@@ -53,10 +56,10 @@ class App extends React.Component {
             choices: this.getChoices(firstCountryChoice),
             previousCountry: null,
             settings: {
-                multipleChoice: false
+                multipleChoice: true
             },
             countryInput: '',
-            suggestions: COUNTRY_SUGGESTIONS
+            suggestions: []
         };
 
         document.addEventListener("keydown", this.keyboardListener);
@@ -75,6 +78,11 @@ class App extends React.Component {
         if (this.hasLoaded()) {
             return <div className="App">
                 <header className="App-header">
+                    <button onClick={() => {
+                        let settings = this.state.settings;
+                        settings.multipleChoice = !settings.multipleChoice;
+                        this.setState({settings});
+                    }}>Toggle input mode (WIP)</button>
                     Previous country:
                     {this.getCountryPanel(this.state.previousCountry, true)}
                     <p>Score: {this.state.score.correct + '/' + this.state.score.guesses}
@@ -126,36 +134,48 @@ class App extends React.Component {
                 <Autosuggest
                     theme={{fontSize: '50px'}}
                     suggestions={this.state.suggestions}
-                    onSuggestionsFetchRequested={() =>
-                        this.setState(
-                            {
-                                suggestions: COUNTRY_SUGGESTIONS
-                                    .filter(suggestion => this.compareSuggestionWithAnswer(suggestion))
-                            }
-                        )}
+                    onSuggestionsFetchRequested={() => null}
                     onSuggestionsClearRequested={() => this.setState({suggestions: []})}
                     getSuggestionValue={suggestion => suggestion.countryName}
                     renderSuggestion={suggestion => <div className="suggestion">{suggestion.countryName}</div>}
                     inputProps={{
                         placeholder: 'Country Name',
                         value: this.state.countryInput,
-                        onChange: (event, {newValue}) => this.setState({countryInput: newValue})
+                        onChange: (event, {newValue}) => {
+                            this.setState({countryInput: newValue})
+                            this.filterSuggestions(newValue);
+                        }
                     }}
                 />)
         }
     }
 
-    compareSuggestionWithAnswer(suggestion) {
-        const looseAnswer = formatCountryName(this.state.countryInput);
+    filterSuggestions(countryInput) {
+        console.log(countryInput)
+        this.setState(
+            {
+                suggestions: COUNTRY_SUGGESTIONS
+                    .filter(suggestion => this.compareSuggestionWithAnswer(suggestion, countryInput))
+            }
+        );
+    }
 
-        return suggestion.countryName.startsWith(looseAnswer);
+    compareSuggestionWithAnswer(suggestion, countryInput) {
+        if(countryInput === undefined || countryInput === null) {
+            return false;
+        }
+
+        const countryInputLoose = formatCountry(countryInput);
+
+        return formatCountry(suggestion.countryName).startsWith(countryInputLoose);
     }
 
     keyboardListener = event => {
-        console.log(event)
-        if (event.key === "Enter") {
-            this.guess(this.state.suggestions[0].abbreviation);
+        if (event.key === "Enter" && this.state.suggestions[0] !== undefined) {
+            let countryInput = this.state.countryInput;
             this.setState({countryInput: ""});
+            this.filterSuggestions(countryInput);
+            this.guess(this.state.suggestions[0].abbreviation);
         } else {
             let key = event.key * 1;
 
@@ -197,7 +217,7 @@ class App extends React.Component {
             return 0;
         }
 
-        return <>{(this.state.score.correct / this.state.score.guesses) * 100}</>;
+        return (this.state.score.correct / this.state.score.guesses) * 100;
     }
 
     getRandomCountryShortHands(count, answerCountry) {
@@ -254,7 +274,8 @@ class App extends React.Component {
             country: nextCountry,
             choices: this.getChoices(nextCountry),
             score,
-            previousCountry
+            previousCountry,
+            countryInput: ""
         });
     }
 
