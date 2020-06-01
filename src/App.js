@@ -3,20 +3,21 @@ import './App.css';
 import countries from './countries.json';
 import Autosuggest from 'react-autosuggest';
 
+const correctSound = new Audio('correct.mp3');
+const wrongSound = new Audio('wrong.mp3');
+
+
 const COUNTRY_COUNT = Object.keys(countries).length;
 const CHOICE_COUNT = 8;
 
 function formatCountry(countryName) {
-    if(countryName.includes(".")) {
-        console.log(countryName.replace())
-    }
-    countryName = countryName.split(".").join('');
-    countryName = countryName.split(".").join("");
-    countryName = countryName.split("ã").join("");
-    countryName = countryName.split("é").join("");
-    countryName = countryName.split("Å").join("");
-    countryName = countryName.toUpperCase();
-    return countryName;
+    let formattedCountryName = countryName.split(".").join('');
+    formattedCountryName = formattedCountryName.split(".").join("");
+    formattedCountryName = formattedCountryName.split("ã").join("a");
+    formattedCountryName = formattedCountryName.split("é").join("e");
+    formattedCountryName = formattedCountryName.split("Å").join("A");
+    formattedCountryName = formattedCountryName.toUpperCase();
+    return formattedCountryName;
 }
 
 const COUNTRY_SUGGESTIONS = Object.keys(countries).map(abbreviation => {
@@ -264,7 +265,10 @@ class App extends React.Component {
         score.guesses++;
 
         if (countryShorthand === this.state.country) {
+            correctSound.play();
             score.correct++;
+        } else {
+            wrongSound.play();
         }
 
         const previousCountry = this.state.country;
