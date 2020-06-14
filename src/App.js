@@ -5,8 +5,6 @@ import Autosuggest from 'react-autosuggest';
 
 const correctSound = new Audio('correct.mp3');
 const wrongSound = new Audio('wrong.mp3');
-
-
 const COUNTRY_COUNT = Object.keys(countries).length;
 const CHOICE_COUNT = 8;
 
@@ -39,6 +37,8 @@ function shuffleArray(array) {
     return array;
 }
 
+let secondInit = false;
+
 class App extends React.Component {
     constructor(props) {
         super(props);
@@ -57,13 +57,20 @@ class App extends React.Component {
             choices: this.getChoices(firstCountryChoice),
             previousCountry: null,
             settings: {
-                multipleChoice: true
+                multipleChoice: true,
+                showFlag: true,
+                showPreviousCountry: true
             },
             countryInput: '',
             suggestions: []
         };
 
-        document.addEventListener("keydown", this.keyboardListener);
+        //FIXME
+        if(secondInit) {
+            document.addEventListener("keydown", this.keyboardListener);
+        } else {
+            secondInit = true;
+        }
     }
 
     populateCountryIndexMap() {
@@ -79,13 +86,9 @@ class App extends React.Component {
         if (this.hasLoaded()) {
             return <div className="App">
                 <header className="App-header">
-                    <button onClick={() => {
-                        let settings = this.state.settings;
-                        settings.multipleChoice = !settings.multipleChoice;
-                        this.setState({settings});
-                    }}>Toggle input mode (WIP)</button>
-                    Previous country:
-                    {this.getCountryPanel(this.state.previousCountry, true)}
+                    {this.settingsBar()}
+                    {this.state.settings.showPreviousCountry && <div>Previous country:
+                        {this.getCountryPanel(this.state.previousCountry, true)}</div>}
                     <p>Score: {this.state.score.correct + '/' + this.state.score.guesses}
                         &nbsp; ({this.getScorePercentage()})% | Countries
                         remaining {COUNTRY_COUNT - this.countryIndex}</p>
@@ -94,31 +97,36 @@ class App extends React.Component {
                 <div className="background-color">
                     {this.getAnswerInput()}
                 </div>
-                {/*FIXME*/}
-                <div className="background-color">
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                    <br/>
-                </div>
             </div>
         } else {
             return <p>Loading...</p>
         }
+    }
+
+    settingsBar() {
+        return <div>
+            <button style={{float: 'right', fontSize: 20}}
+                    onClick={() => {
+                        let settings = this.state.settings;
+                        settings.multipleChoice = !settings.multipleChoice;
+                        this.setState({settings});
+                    }}>Toggle input mode
+            </button>
+            <button style={{float: 'right', fontSize: 20}}
+                    onClick={() => {
+                        let settings = this.state.settings;
+                        settings.showFlag = !settings.showFlag;
+                        this.setState({settings});
+                    }}>Toggle show flag
+            </button>
+            <button style={{float: 'right', fontSize: 20}}
+                    onClick={() => {
+                        let settings = this.state.settings;
+                        settings.showPreviousCountry = !settings.showPreviousCountry;
+                        this.setState({settings});
+                    }}>Toggle previous country view
+            </button>
+        </div>;
     }
 
     getAnswerInput() {
@@ -162,7 +170,7 @@ class App extends React.Component {
     }
 
     compareSuggestionWithAnswer(suggestion, countryInput) {
-        if(countryInput === undefined || countryInput === null) {
+        if (countryInput === undefined || countryInput === null) {
             return false;
         }
 
@@ -178,12 +186,14 @@ class App extends React.Component {
             this.filterSuggestions(countryInput);
             this.guess(this.state.suggestions[0].abbreviation);
         } else {
+            console.log(event)
             let key = event.key * 1;
 
             if (key > 0 && key <= CHOICE_COUNT) {
                 console.log(key, this.state.choices)
                 this.guess(this.state.choices[key - 1]);
             }
+
         }
     }
 
@@ -201,7 +211,7 @@ class App extends React.Component {
             </div>;
         } else {
             return <div>
-                <img src={this.getFlag(countryKey)} className='flag' alt="flag"/>
+                {this.state.settings.showFlag && <img src={this.getFlag(countryKey)} className='flag' alt="flag"/>}
                 <p>Capital: {country.capital}</p>
             </div>;
         }
@@ -290,7 +300,14 @@ class App extends React.Component {
             this.populateCountryIndexMap();
         }
 
-        return this.countryIndexMap[this.countryIndex++];
+        let country = this.countryIndexMap[this.countryIndex++];
+        if (this.state && !this.state.settings.showFlag) {
+            while (country.capital === '') {
+                country = this.countryIndexMap[this.countryIndex++]
+            }
+        }
+
+        return country;
     }
 }
 
