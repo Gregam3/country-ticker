@@ -95,7 +95,7 @@
     "native": "Antarctica",
     "phone": "672",
     "continent": "AN",
-    "capital": "",
+    "capital": "No Capital",
     "currency": "",
     "languages": []
   },
@@ -379,7 +379,7 @@
     "native": "Bouvetøya",
     "phone": "47",
     "continent": "AN",
-    "capital": "",
+    "capital": "No Capital",
     "currency": "NOK",
     "languages": [
       "no",
@@ -1098,7 +1098,7 @@
     "native": "Heard Island and McDonald Islands",
     "phone": "61",
     "continent": "AN",
-    "capital": "",
+    "capital": "No Capital",
     "currency": "AUD",
     "languages": [
       "en"
@@ -1281,7 +1281,7 @@
     "native": "Jamaica",
     "phone": "1876",
     "continent": "NA",
-    "capital": "Kingston",
+    "capital": "Kingston 1",
     "currency": "JMD",
     "languages": [
       "en"
@@ -1693,7 +1693,7 @@
     "native": "澳門",
     "phone": "853",
     "continent": "AS",
-    "capital": "",
+    "capital": "No Capital",
     "currency": "MOP",
     "languages": [
       "zh",
@@ -1863,7 +1863,7 @@
     "native": "Norfolk Island",
     "phone": "672",
     "continent": "OC",
-    "capital": "Kingston",
+    "capital": "Kingston 2",
     "currency": "AUD",
     "languages": [
       "en"
@@ -2645,7 +2645,7 @@
     "native": "United States Minor Outlying Islands",
     "phone": "1",
     "continent": "OC",
-    "capital": "",
+    "capital": "No Capital",
     "currency": "USD",
     "languages": [
       "en"

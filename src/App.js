@@ -132,7 +132,7 @@ export default class App extends React.Component {
                     {choiceIndex++ + ' - ' + countries[countryChoice].name}</button>)}
             </div>;
         } else {
-            return (
+            return <div>
                 <Autosuggest
                     theme={{fontSize: '50px'}}
                     suggestions={this.state.suggestions}
@@ -148,7 +148,12 @@ export default class App extends React.Component {
                             this.filterSuggestions(newValue);
                         }
                     }}
-                />)
+                />
+                <br/>
+                <button style={{fontSize: 20}} onClick={() => this.guess(null)}>
+                    I don't know
+                </button>
+            </div>;
         }
     }
 
@@ -295,7 +300,8 @@ export default class App extends React.Component {
 
         let country = this.countryIndexMap[this.countryIndex++];
         if (this.state && !this.state.settings.showFlag) {
-            while (country.capital === '') {
+            console.log(country)
+            while (country.capital === 'No Capital') {
                 country = this.countryIndexMap[this.countryIndex++]
             }
         }
