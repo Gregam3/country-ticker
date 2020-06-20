@@ -37,9 +37,7 @@ function shuffleArray(array) {
     return array;
 }
 
-let firstInit = true;
-
-class App extends React.Component {
+export default class App extends React.Component {
     constructor(props) {
         super(props);
 
@@ -65,12 +63,7 @@ class App extends React.Component {
             suggestions: []
         };
 
-        //FIXME
-        if(firstInit) {
-            document.addEventListener("keydown", this.keyboardListener);
-        } else {
-            firstInit = false;
-        }
+        document.addEventListener("keydown", this.keyboardListener);
     }
 
     populateCountryIndexMap() {
@@ -278,7 +271,6 @@ class App extends React.Component {
             correctSound.play();
             score.correct++;
         } else {
-            wrongSound.play();
         }
 
         const previousCountry = this.state.country;
@@ -310,5 +302,3 @@ class App extends React.Component {
         return country;
     }
 }
-
-export default App;
