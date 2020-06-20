@@ -271,6 +271,7 @@ export default class App extends React.Component {
             correctSound.play();
             score.correct++;
         } else {
+            wrongSound.play();
         }
 
         const previousCountry = this.state.country;
