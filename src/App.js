@@ -298,14 +298,17 @@ export default class App extends React.Component {
             this.populateCountryIndexMap();
         }
 
-        let country = this.countryIndexMap[this.countryIndex++];
+        let countryShortHand = this.countryIndexMap[this.countryIndex++];
+
         if (this.state && !this.state.settings.showFlag) {
-            console.log(country)
+            let country = countries[countryShortHand];
+
             while (country.capital === 'No Capital') {
-                country = this.countryIndexMap[this.countryIndex++]
+                countryShortHand = this.countryIndexMap[this.countryIndex++];
+                country = countries[countryShortHand];
             }
         }
 
-        return country;
+        return countryShortHand;
     }
 }
