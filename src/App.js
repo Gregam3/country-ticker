@@ -37,7 +37,7 @@ function shuffleArray(array) {
     return array;
 }
 
-let secondInit = false;
+let firstInit = true;
 
 class App extends React.Component {
     constructor(props) {
@@ -66,10 +66,10 @@ class App extends React.Component {
         };
 
         //FIXME
-        if(secondInit) {
+        if(firstInit) {
             document.addEventListener("keydown", this.keyboardListener);
         } else {
-            secondInit = true;
+            firstInit = false;
         }
     }
 
