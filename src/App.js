@@ -8,7 +8,7 @@ const wrongSound = new Audio('wrong.mp3');
 const COUNTRY_COUNT = Object.keys(countries).length;
 const CHOICE_COUNT = 8;
 
-function formatCountry(countryName) {
+function generifyInput(countryName) {
     let formattedCountryName = countryName.split(".").join('');
     formattedCountryName = formattedCountryName.split(".").join("");
     formattedCountryName = formattedCountryName.split("ã").join("a");
@@ -23,7 +23,13 @@ const COUNTRY_SUGGESTIONS = Object.keys(countries).map(abbreviation => {
         countryName: countries[abbreviation].name,
         abbreviation
     }
+});
 
+const CAPITAL_SUGGESTIONS = Object.keys(countries).map(abbreviation => {
+    return {
+        countryName: countries[abbreviation].capital,
+        abbreviation
+    }
 });
 
 function shuffleArray(array) {
@@ -57,7 +63,8 @@ export default class App extends React.Component {
             settings: {
                 multipleChoice: true,
                 showFlag: true,
-                showPreviousCountry: true
+                showPreviousCountry: true,
+                countryGuess: true
             },
             countryInput: '',
             suggestions: []
@@ -119,6 +126,13 @@ export default class App extends React.Component {
                         this.setState({settings});
                     }}>Toggle previous country view
             </button>
+            <button style={{float: 'right', fontSize: 20}}
+                    onClick={() => {
+                        let settings = this.state.settings;
+                        settings.countryGuess = !settings.countryGuess;
+                        this.setState({settings});
+                    }}>Toggle Country/Capital Input
+            </button>
         </div>;
     }
 
@@ -129,7 +143,7 @@ export default class App extends React.Component {
                 {this.state.choices.map(countryChoice => <button
                     style={{fontSize: '50px', width: '50%', float: 'left', height: '100px'}}
                     onClick={() => this.guess(countryChoice)}>
-                    {choiceIndex++ + ' - ' + countries[countryChoice].name}</button>)}
+                    {choiceIndex++ + ' - ' + this.getDisplayForCountry(countryChoice)}</button>)}
             </div>;
         } else {
             return <div>
@@ -157,24 +171,34 @@ export default class App extends React.Component {
         }
     }
 
-    filterSuggestions(countryInput) {
-        console.log(countryInput)
-        this.setState(
-            {
-                suggestions: COUNTRY_SUGGESTIONS
-                    .filter(suggestion => this.compareSuggestionWithAnswer(suggestion, countryInput))
-            }
-        );
+    getDisplayForCountry(countryChoice) {
+        if(this.state.settings.countryGuess) {
+            return countries[countryChoice].name;
+        } else {
+            return countries[countryChoice].capital;
+        }
     }
 
-    compareSuggestionWithAnswer(suggestion, countryInput) {
-        if (countryInput === undefined || countryInput === null) {
+    filterSuggestions(userInput) {
+        let suggestions;
+
+        if(this.state.settings.countryGuess) {
+            suggestions = COUNTRY_SUGGESTIONS.filter(possibleCountrySuggestion => this.canBeSuggestion(possibleCountrySuggestion, userInput))
+        } else {
+            suggestions = CAPITAL_SUGGESTIONS.filter(possibleCapitalSuggestion => this.canBeSuggestion(possibleCapitalSuggestion, userInput))
+        }
+
+        this.setState({suggestions});
+    }
+
+    canBeSuggestion(suggestion, userInput) {
+        if (userInput === undefined || userInput === null) {
             return false;
         }
 
-        const countryInputLoose = formatCountry(countryInput);
+        const countryInputLoose = generifyInput(userInput);
 
-        return formatCountry(suggestion.countryName).startsWith(countryInputLoose);
+        return generifyInput(suggestion.countryName).startsWith(countryInputLoose);
     }
 
     keyboardListener = event => {
@@ -205,16 +229,24 @@ export default class App extends React.Component {
         if (isPrevious) {
             return <div>
                 <img src={this.getFlag(countryKey)} className='previous-flag' alt="flag"/>
-                <p>Capital: {country.capital} | Correct Answer: {country.name}</p>
+                <p>Capital: {country.capital} | Country: {country.name}</p>
             </div>;
         } else {
             return <div>
                 {this.state.settings.showFlag && <img src={this.getFlag(countryKey)} className='flag' alt="flag"/>}
-                <p>Capital: {country.capital}</p>
+                {this.getHint(country)}
             </div>;
         }
 
 
+    }
+
+    getHint(country) {
+        if(this.state.settings.countryGuess) {
+            return <p>Capital: {country.capital}</p>;
+        } else {
+            return <p>Country: {country.name}</p>
+        }
     }
 
     getFlag(countryName) {
@@ -275,8 +307,6 @@ export default class App extends React.Component {
         if (countryShorthand === this.state.country) {
             correctSound.play();
             score.correct++;
-        } else {
-            wrongSound.play();
         }
 
         const previousCountry = this.state.country;
