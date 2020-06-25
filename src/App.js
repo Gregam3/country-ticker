@@ -4,7 +4,7 @@ import countries from './countries.json';
 import Autosuggest from 'react-autosuggest';
 
 const correctSound = new Audio('correct.mp3');
-const wrongSound = new Audio('wrong.mp3');
+// const wrongSound = new Audio('wrong.mp3');
 const COUNTRY_COUNT = Object.keys(countries).length;
 const CHOICE_COUNT = 8;
 
