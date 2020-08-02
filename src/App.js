@@ -5,6 +5,9 @@ import Autosuggest from 'react-autosuggest';
 import GuessingMap from "./GuessingMap";
 import MAP_COUNTRIES_TO_GUESS from "./map-countries.json";
 
+
+//FIXME the code in this project is absolutely terrible, I am rushing. Please do not judge me
+
 const correctSound = new Audio('correct.mp3');
 // const wrongSound = new Audio('wrong.mp3');
 const COUNTRY_COUNT = Object.keys(countries).length;
@@ -120,6 +123,13 @@ export default class App extends React.Component {
                     onClick={() => {
                         let settings = this.state.settings;
                         settings.inputMode = (settings.inputMode + 1) % 3;
+
+                        if(settings.inputMode === INPUT_MODES.MapClick) {
+                            console.log("here")
+                            const country = this.getNextMapCountry(this.state.country);
+                            this.setState({country});
+                        }
+
                         console.log(settings.inputMode)
                         this.setState({settings});
                     }}>Cycle through input modes
@@ -182,7 +192,9 @@ export default class App extends React.Component {
                     </button>
                 </div>;
             case INPUT_MODES.MapClick:
-                return <GuessingMap guess={this.guess}/>
+                return <div style={{border: '20px solid #ffffff'}}>
+                    <GuessingMap guess={this.guess} previousCountry={this.state.previousCountry}/>
+                </div>
             default: return "";
         }
     }
@@ -346,15 +358,35 @@ export default class App extends React.Component {
 
         let countryShortHand = this.countryIndexMap[this.countryIndex++];
 
+        if(this.state === undefined) {
+            return countryShortHand;
+        }
+
+        if(this.state.settings.inputMode === INPUT_MODES.MapClick) {
+            return this.getNextMapCountry(countryShortHand);
+        }
+
         if (this.state && !this.state.settings.showFlag) {
             let country = countries[countryShortHand];
 
-            while (country.capital === 'No Capital') {
-                countryShortHand = this.countryIndexMap[this.countryIndex++];
-                country = countries[countryShortHand];
+            while (true) {
+                this.countryIndex++;
+                if(country.capital === 'No Capital') {
+                    return this.countryIndexMap[this.countryIndex];
+                }
             }
         }
 
         return countryShortHand;
+    }
+
+    getNextMapCountry(countryShortHand) {
+        while (true) {
+            this.countryIndex++;
+            countryShortHand = this.countryIndexMap[this.countryIndex];
+            if(MAP_COUNTRIES_TO_GUESS.includes(countryShortHand)) {
+                return countryShortHand;
+            }
+        }
     }
 }
