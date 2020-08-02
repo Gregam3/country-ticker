@@ -1,27 +1,18 @@
-import React, {useState} from 'react';
+import React from 'react';
 import './App.css';
 import countries from './countries.json';
 import Autosuggest from 'react-autosuggest';
 import GuessingMap from "./GuessingMap";
 import MAP_COUNTRIES_TO_GUESS from "./map-countries.json";
+import {generifyInput, shuffleArray} from "./Util";
+import {INPUT_MODES} from "./Enums"
+import {TypingInput} from "./TypingInput";
+import {MultipleChoiceInput} from "./MultipleChoiceInput";
 
-
-//FIXME the code in this project is absolutely terrible, I am rushing. Please do not judge me
-
-const correctSound = new Audio('correct.mp3');
-// const wrongSound = new Audio('wrong.mp3');
+//Constants
+const CORRECT_SOUND = new Audio('correct.mp3');
 const COUNTRY_COUNT = Object.keys(countries).length;
 const CHOICE_COUNT = 8;
-
-function generifyInput(countryName) {
-    let formattedCountryName = countryName.split(".").join('');
-    formattedCountryName = formattedCountryName.split(".").join("");
-    formattedCountryName = formattedCountryName.split("ã").join("a");
-    formattedCountryName = formattedCountryName.split("é").join("e");
-    formattedCountryName = formattedCountryName.split("Å").join("A");
-    formattedCountryName = formattedCountryName.toUpperCase();
-    return formattedCountryName;
-}
 
 const COUNTRY_SUGGESTIONS = Object.keys(countries).map(abbreviation => {
     return {
@@ -36,23 +27,6 @@ const CAPITAL_SUGGESTIONS = Object.keys(countries).map(abbreviation => {
         abbreviation
     }
 });
-
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        const temp = array[i];
-        array[i] = array[j];
-        array[j] = temp;
-    }
-
-    return array;
-}
-
-const INPUT_MODES = {
-    MultipleChoice: 0,
-    Typing: 1,
-    MapClick: 2
-}
 
 export default class App extends React.Component {
     constructor(props) {
@@ -82,8 +56,9 @@ export default class App extends React.Component {
         };
 
         this.guess = this.guess.bind(this);
+        this.getDisplayValueForCountry = this.getDisplayValueForCountry.bind(this);
 
-        document.addEventListener("keydown", this.keyboardListener);
+        document.addEventListener("keydown", this.answerKeyListener);
     }
 
     populateCountryIndexMap() {
@@ -124,7 +99,7 @@ export default class App extends React.Component {
                         let settings = this.state.settings;
                         settings.inputMode = (settings.inputMode + 1) % 3;
 
-                        if(settings.inputMode === INPUT_MODES.MapClick) {
+                        if (settings.inputMode === INPUT_MODES.MapClick) {
                             console.log("here")
                             const country = this.getNextMapCountry(this.state.country);
                             this.setState({country});
@@ -161,45 +136,23 @@ export default class App extends React.Component {
     getAnswerInput() {
         switch (this.state.settings.inputMode) {
             case INPUT_MODES.MultipleChoice:
-                let choiceIndex = 1;
-                return <div className="answers">
-                    {this.state.choices.map(countryChoice => <button
-                        style={{fontSize: '50px', width: '50%', float: 'left', height: '100px'}}
-                        onClick={() => this.guess(countryChoice)}>
-                        {choiceIndex++ + ' - ' + this.getDisplayForCountry(countryChoice)}</button>)}
-                </div>;
+                return <MultipleChoiceInput
+                    getDisplayValueForCountry={this.getDisplayValueForCountry}
+                    choices={this.state.choices}
+                    guess={this.guess}
+                />
             case INPUT_MODES.Typing:
-                return <div>
-                    <Autosuggest
-                        theme={{fontSize: '50px'}}
-                        suggestions={this.state.suggestions}
-                        onSuggestionsFetchRequested={() => null}
-                        onSuggestionsClearRequested={() => this.setState({suggestions: []})}
-                        getSuggestionValue={suggestion => suggestion.countryName}
-                        renderSuggestion={suggestion => <div className="suggestion">{suggestion.countryName}</div>}
-                        inputProps={{
-                            placeholder: 'Country Name',
-                            value: this.state.countryInput,
-                            onChange: (event, {newValue}) => {
-                                this.setState({countryInput: newValue})
-                                this.filterSuggestions(newValue);
-                            }
-                        }}
-                    />
-                    <br/>
-                    <button style={{fontSize: 20}} onClick={() => this.guess(null)}>
-                        I don't know
-                    </button>
-                </div>;
+                return <TypingInput/>
             case INPUT_MODES.MapClick:
                 return <div style={{border: '20px solid #ffffff'}}>
                     <GuessingMap guess={this.guess} previousCountry={this.state.previousCountry}/>
                 </div>
-            default: return "";
+            default:
+                return "";
         }
     }
 
-    getDisplayForCountry(countryChoice) {
+    getDisplayValueForCountry(countryChoice) {
         if (this.state.settings.countryGuess) {
             return countries[countryChoice].name;
         } else {
@@ -229,21 +182,18 @@ export default class App extends React.Component {
         return generifyInput(suggestion.countryName).startsWith(countryInputLoose);
     }
 
-    keyboardListener = event => {
+    answerKeyListener = event => {
         if (event.key === "Enter" && this.state.suggestions[0] !== undefined) {
             let countryInput = this.state.countryInput;
             this.setState({countryInput: ""});
             this.filterSuggestions(countryInput);
             this.guess(this.state.suggestions[0].abbreviation);
         } else {
-            console.log(event)
             let key = event.key * 1;
 
             if (key > 0 && key <= CHOICE_COUNT) {
-                console.log(key, this.state.choices)
                 this.guess(this.state.choices[key - 1]);
             }
-
         }
     }
 
@@ -333,7 +283,7 @@ export default class App extends React.Component {
         score.guesses++;
 
         if (countryShorthand === this.state.country) {
-            correctSound.play();
+            CORRECT_SOUND.play();
             score.correct++;
         }
 
@@ -358,11 +308,11 @@ export default class App extends React.Component {
 
         let countryShortHand = this.countryIndexMap[this.countryIndex++];
 
-        if(this.state === undefined) {
+        if (this.state === undefined) {
             return countryShortHand;
         }
 
-        if(this.state.settings.inputMode === INPUT_MODES.MapClick) {
+        if (this.state.settings.inputMode === INPUT_MODES.MapClick) {
             return this.getNextMapCountry(countryShortHand);
         }
 
@@ -371,7 +321,7 @@ export default class App extends React.Component {
 
             while (true) {
                 this.countryIndex++;
-                if(country.capital === 'No Capital') {
+                if (country.capital === 'No Capital') {
                     return this.countryIndexMap[this.countryIndex];
                 }
             }
@@ -384,7 +334,7 @@ export default class App extends React.Component {
         while (true) {
             this.countryIndex++;
             countryShortHand = this.countryIndexMap[this.countryIndex];
-            if(MAP_COUNTRIES_TO_GUESS.includes(countryShortHand)) {
+            if (MAP_COUNTRIES_TO_GUESS.includes(countryShortHand)) {
                 return countryShortHand;
             }
         }
