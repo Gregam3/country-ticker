@@ -1,5 +1,9 @@
 import React from "react";
 import countries from "./countries.json";
+import {generifyInput} from "./Util";
+import {COUNTRY_COUNT} from "./App";
+
+const CHOICE_COUNT = 8;
 
 export class MultipleChoiceInput extends React.Component {
     constructor(props) {
@@ -7,19 +11,80 @@ export class MultipleChoiceInput extends React.Component {
         this.getDisplayValueForCountry = props.getDisplayValueForCountry;
         this.guess = props.guess;
         this.state = {
-            choices: props.choices
+            choices: this.getChoices(props.answer)
         }
+
+        document.addEventListener("keydown", this.multipleChoiceAnswerKeyListener);
+    }
+
+    componentWillReceiveProps(nextProps, oldProps) {
+        this.setState({choices: nextProps.choices});
+    }
+
+    render() {
+        if (this.state.choices !== undefined) {
+            let choiceIndex = 1;
+            return <div className="answers">
+                {this.state.choices.map(countryChoice => <button
+                    style={{fontSize: '50px', width: '50%', float: 'left', height: '100px'}}
+                    onClick={() => this.guess(countryChoice)}>
+                    {choiceIndex++ + ' - ' + this.getDisplayValueForCountry(countryChoice)}</button>)}
+            </div>;
+        }
+
+        return <p>Loading...</p>;
     }
 
 
+    canBeSuggestion(suggestion, userInput) {
+        if (userInput === undefined || userInput === null) {
+            return false;
+        }
 
-    render() {
-        let choiceIndex = 1;
-        return <div className="answers">
-            {this.state.choices.map(countryChoice => <button
-                style={{fontSize: '50px', width: '50%', float: 'left', height: '100px'}}
-                onClick={() => this.guess(countryChoice)}>
-                {choiceIndex++ + ' - ' + this.getDisplayValueForCountry(countryChoice)}</button>)}
-        </div>;
+        const countryInputLoose = generifyInput(userInput);
+
+        return generifyInput(suggestion.countryName).startsWith(countryInputLoose);
+    }
+
+    multipleChoiceAnswerKeyListener(event) {
+        let key = event.key * 1;
+
+        if (key > 0 && key <= CHOICE_COUNT) {
+            this.guess(this.state.choices[key - 1]);
+        }
+    }
+
+    getChoices(correctAnswer) {
+        const choices = [...this.getRandomCountryShortHands(CHOICE_COUNT - 1, correctAnswer), correctAnswer].sort();
+        let i = 1;
+
+        let choiceKeymap = {};
+
+        for (let choicesKey in choices) {
+            choiceKeymap[i++] = choicesKey;
+        }
+
+        this.setState({choiceKeymap});
+
+        return choices;
+    }
+
+    getRandomCountryShortHands(count, answerCountry) {
+        const countryShortHands = [];
+
+        while (countryShortHands.length < count) {
+            const nextCountryIndex = Math.floor(Math.random() * COUNTRY_COUNT - 1);
+            const country = Object.keys(countries)[nextCountryIndex];
+
+            if (!countryShortHands.includes(country) && country !== answerCountry && country !== undefined) {
+                countryShortHands.push(country);
+            }
+        }
+
+        if (count === 1) {
+            return countryShortHands[0];
+        } else {
+            return countryShortHands;
+        }
     }
 }
