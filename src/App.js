@@ -1,7 +1,9 @@
-import React from 'react';
+import React, {useState} from 'react';
 import './App.css';
 import countries from './countries.json';
 import Autosuggest from 'react-autosuggest';
+import GuessingMap from "./GuessingMap";
+import MAP_COUNTRIES_TO_GUESS from "./map-countries.json";
 
 const correctSound = new Audio('correct.mp3');
 // const wrongSound = new Audio('wrong.mp3');
@@ -43,6 +45,12 @@ function shuffleArray(array) {
     return array;
 }
 
+const INPUT_MODES = {
+    MultipleChoice: 0,
+    Typing: 1,
+    MapClick: 2
+}
+
 export default class App extends React.Component {
     constructor(props) {
         super(props);
@@ -61,7 +69,7 @@ export default class App extends React.Component {
             choices: this.getChoices(firstCountryChoice),
             previousCountry: null,
             settings: {
-                multipleChoice: true,
+                inputMode: INPUT_MODES.MultipleChoice,
                 showFlag: true,
                 showPreviousCountry: true,
                 countryGuess: true
@@ -69,6 +77,8 @@ export default class App extends React.Component {
             countryInput: '',
             suggestions: []
         };
+
+        this.guess = this.guess.bind(this);
 
         document.addEventListener("keydown", this.keyboardListener);
     }
@@ -90,6 +100,7 @@ export default class App extends React.Component {
                     {this.state.settings.showPreviousCountry && <div>Previous country:
                         {this.getCountryPanel(this.state.previousCountry, true)}</div>}
                     <p>Score: {this.state.score.correct + '/' + this.state.score.guesses}
+
                         &nbsp; ({this.getScorePercentage()})% | Countries
                         remaining {COUNTRY_COUNT - this.countryIndex}</p>
                     {this.getCountryPanel(this.state.country, false)}
@@ -108,9 +119,10 @@ export default class App extends React.Component {
             <button style={{float: 'right', fontSize: 20}}
                     onClick={() => {
                         let settings = this.state.settings;
-                        settings.multipleChoice = !settings.multipleChoice;
+                        settings.inputMode = (settings.inputMode + 1) % 3;
+                        console.log(settings.inputMode)
                         this.setState({settings});
-                    }}>Toggle input mode
+                    }}>Cycle through input modes
             </button>
             <button style={{float: 'right', fontSize: 20}}
                     onClick={() => {
@@ -137,42 +149,46 @@ export default class App extends React.Component {
     }
 
     getAnswerInput() {
-        if (this.state.settings.multipleChoice) {
-            let choiceIndex = 1;
-            return <div className="answers">
-                {this.state.choices.map(countryChoice => <button
-                    style={{fontSize: '50px', width: '50%', float: 'left', height: '100px'}}
-                    onClick={() => this.guess(countryChoice)}>
-                    {choiceIndex++ + ' - ' + this.getDisplayForCountry(countryChoice)}</button>)}
-            </div>;
-        } else {
-            return <div>
-                <Autosuggest
-                    theme={{fontSize: '50px'}}
-                    suggestions={this.state.suggestions}
-                    onSuggestionsFetchRequested={() => null}
-                    onSuggestionsClearRequested={() => this.setState({suggestions: []})}
-                    getSuggestionValue={suggestion => suggestion.countryName}
-                    renderSuggestion={suggestion => <div className="suggestion">{suggestion.countryName}</div>}
-                    inputProps={{
-                        placeholder: 'Country Name',
-                        value: this.state.countryInput,
-                        onChange: (event, {newValue}) => {
-                            this.setState({countryInput: newValue})
-                            this.filterSuggestions(newValue);
-                        }
-                    }}
-                />
-                <br/>
-                <button style={{fontSize: 20}} onClick={() => this.guess(null)}>
-                    I don't know
-                </button>
-            </div>;
+        switch (this.state.settings.inputMode) {
+            case INPUT_MODES.MultipleChoice:
+                let choiceIndex = 1;
+                return <div className="answers">
+                    {this.state.choices.map(countryChoice => <button
+                        style={{fontSize: '50px', width: '50%', float: 'left', height: '100px'}}
+                        onClick={() => this.guess(countryChoice)}>
+                        {choiceIndex++ + ' - ' + this.getDisplayForCountry(countryChoice)}</button>)}
+                </div>;
+            case INPUT_MODES.Typing:
+                return <div>
+                    <Autosuggest
+                        theme={{fontSize: '50px'}}
+                        suggestions={this.state.suggestions}
+                        onSuggestionsFetchRequested={() => null}
+                        onSuggestionsClearRequested={() => this.setState({suggestions: []})}
+                        getSuggestionValue={suggestion => suggestion.countryName}
+                        renderSuggestion={suggestion => <div className="suggestion">{suggestion.countryName}</div>}
+                        inputProps={{
+                            placeholder: 'Country Name',
+                            value: this.state.countryInput,
+                            onChange: (event, {newValue}) => {
+                                this.setState({countryInput: newValue})
+                                this.filterSuggestions(newValue);
+                            }
+                        }}
+                    />
+                    <br/>
+                    <button style={{fontSize: 20}} onClick={() => this.guess(null)}>
+                        I don't know
+                    </button>
+                </div>;
+            case INPUT_MODES.MapClick:
+                return <GuessingMap guess={this.guess}/>
+            default: return "";
         }
     }
 
     getDisplayForCountry(countryChoice) {
-        if(this.state.settings.countryGuess) {
+        if (this.state.settings.countryGuess) {
             return countries[countryChoice].name;
         } else {
             return countries[countryChoice].capital;
@@ -182,7 +198,7 @@ export default class App extends React.Component {
     filterSuggestions(userInput) {
         let suggestions;
 
-        if(this.state.settings.countryGuess) {
+        if (this.state.settings.countryGuess) {
             suggestions = COUNTRY_SUGGESTIONS.filter(possibleCountrySuggestion => this.canBeSuggestion(possibleCountrySuggestion, userInput))
         } else {
             suggestions = CAPITAL_SUGGESTIONS.filter(possibleCapitalSuggestion => this.canBeSuggestion(possibleCapitalSuggestion, userInput))
@@ -242,7 +258,7 @@ export default class App extends React.Component {
     }
 
     getHint(country) {
-        if(this.state.settings.countryGuess) {
+        if (this.state.settings.countryGuess) {
             return <p>Capital: {country.capital}</p>;
         } else {
             return <p>Country: {country.name}</p>
