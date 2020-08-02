@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+// eslint-disable-next-line no-unused-vars
+import React from 'react';
 import './App.css';
 import countries from './countries.json';
 import Autosuggest from 'react-autosuggest';
