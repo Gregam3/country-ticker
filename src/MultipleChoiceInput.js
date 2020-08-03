@@ -1,6 +1,5 @@
 import React from "react";
 import countries from "./countries.json";
-import {generifyInput} from "./Util";
 import {COUNTRY_COUNT} from "./App";
 
 const CHOICE_COUNT = 8;
