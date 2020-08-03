@@ -36,7 +36,7 @@ class GuessingMap extends React.Component {
         };
     }
 
-    componentWillReceiveProps(nextProps, x) {
+    componentWillReceiveProps(nextProps, oldProps) {
         this.setState({previousCountry: nextProps.previousCountry});
     }
 
