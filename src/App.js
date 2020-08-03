@@ -7,6 +7,7 @@ import {shuffleArray} from "./Util";
 import {HINT_MODES, INPUT_MODES} from "./Enums"
 import {TypingInput} from "./TypingInput";
 import {MultipleChoiceInput} from "./MultipleChoiceInput";
+import {PreviousGuessesList} from "./PreviousGuessesList";
 
 //Constants
 const CORRECT_SOUND = new Audio('correct.mp3');
@@ -33,7 +34,8 @@ export default class App extends React.Component {
                 showFlag: true,
                 showPreviousCountry: true,
                 countryGuess: true
-            }
+            },
+            previousGuesses: []
         };
 
         this.guess = this.guess.bind(this);
@@ -52,16 +54,14 @@ export default class App extends React.Component {
     render() {
         if (this.hasLoaded()) {
             return <div className="App">
-                <header className="App-header">
-                    {this.settingsBar()}
-                    {this.state.settings.showPreviousCountry && <div>Previous country:
-                        {this.getCountryPanel(this.state.previousCountry, true)}</div>}
-                    <p>Score: {this.state.score.correct + '/' + this.state.score.guesses}
-
-                        &nbsp; ({this.getScorePercentage()})% | Countries
-                        remaining {COUNTRY_COUNT - this.countryIndex}</p>
+                <p>Score: {this.state.score.correct + '/' + this.state.score.guesses}
+                    &nbsp; ({this.getScorePercentage()})% | Countries
+                    remaining {COUNTRY_COUNT - this.countryIndex}</p>
+                {/*{this.settingsBar()}*/}
+                <div className="country-info-panel">
+                    <PreviousGuessesList previousGuesses={this.state.previousGuesses}/>
                     {this.getCountryPanel(this.state.country, false)}
-                </header>
+                </div>
                 <div className="background-color">
                     {this.getAnswerInput()}
                 </div>
@@ -121,7 +121,7 @@ export default class App extends React.Component {
                 />
             case INPUT_MODES.Typing:
                 return <TypingInput
-                    hintMode={this.state.countryGuess ?  HINT_MODES.Capital : HINT_MODES.Country}
+                    hintMode={this.state.countryGuess ? HINT_MODES.Capital : HINT_MODES.Country}
                     guess={this.guess}
                 />
             case INPUT_MODES.MapClick:
@@ -190,11 +190,17 @@ export default class App extends React.Component {
         let score = this.state.score;
         score.guesses++;
 
-        if (countryShorthand === this.state.country) {
+        let isCorrect = countryShorthand === this.state.country;
+
+        if (isCorrect) {
             CORRECT_SOUND.play();
             score.correct++;
         }
 
+        let previousGuesses = this.state.previousGuesses;
+        previousGuesses.push({country: this.state.country, isCorrect});
+
+        console.log(previousGuesses)
         const previousCountry = this.state.country;
         const nextCountry = this.getNextCountry();
 
@@ -202,6 +208,7 @@ export default class App extends React.Component {
             country: nextCountry,
             score,
             previousCountry,
+            previousGuesses,
             countryInput: ""
         });
     }
