@@ -14,11 +14,15 @@ export class MultipleChoiceInput extends React.Component {
             choices: this.getChoices(props.answer)
         }
 
-        document.addEventListener("keydown", this.multipleChoiceAnswerKeyListener);
+        console.log("here")
+    }
+
+    componentWillMount() {
+        document.addEventListener("keydown", this.multipleChoiceAnswerKeyListener.bind(this));
     }
 
     componentWillReceiveProps(nextProps, oldProps) {
-        this.setState({choices: nextProps.choices});
+        this.setState({choices: this.getChoices(nextProps.answer)});
     }
 
     render() {
@@ -27,24 +31,17 @@ export class MultipleChoiceInput extends React.Component {
             return <div className="answers">
                 {this.state.choices.map(countryChoice => <button
                     style={{fontSize: '50px', width: '50%', float: 'left', height: '100px'}}
-                    onClick={() => this.guess(countryChoice)}>
-                    {choiceIndex++ + ' - ' + this.getDisplayValueForCountry(countryChoice)}</button>)}
+                    onClick={() => {
+                        this.guess(countryChoice);
+                    }
+                    }>
+                    {'[' + choiceIndex++ + '] ' + this.getDisplayValueForCountry(countryChoice)}</button>)}
             </div>;
         }
 
         return <p>Loading...</p>;
     }
 
-
-    canBeSuggestion(suggestion, userInput) {
-        if (userInput === undefined || userInput === null) {
-            return false;
-        }
-
-        const countryInputLoose = generifyInput(userInput);
-
-        return generifyInput(suggestion.countryName).startsWith(countryInputLoose);
-    }
 
     multipleChoiceAnswerKeyListener(event) {
         let key = event.key * 1;

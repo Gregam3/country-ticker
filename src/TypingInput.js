@@ -1,6 +1,8 @@
 import Autosuggest from "react-autosuggest";
 import React from "react";
 import countries from "./countries.json";
+import {HINT_MODES} from "./Enums";
+import {generifyInput} from "./Util";
 
 const COUNTRY_SUGGESTIONS = Object.keys(countries).map(abbreviation => {
     return {
@@ -22,10 +24,23 @@ export class TypingInput extends React.Component {
         this.state = {
             suggestions: [],
             countryInput: '',
-
+            hintMode: props.hintMode
         };
+        this.guess = props.guess;
+        console.log(props.hintMode)
+    }
 
-        document.addEventListener("keydown", this.multipleChoiceAnswerKeyListener);
+    componentWillMount() {
+        document.addEventListener("keydown", this.suggestionInputListener.bind(this));
+    }
+
+    suggestionInputListener(event) {
+        if (event.key === "Enter" && this.state.suggestions[0] !== undefined) {
+            let countryInput = this.state.countryInput;
+            this.setState({countryInput: ""});
+            this.filterSuggestions(countryInput);
+            this.guess(this.state.suggestions[0].abbreviation);
+        }
     }
 
     render() {
@@ -56,7 +71,7 @@ export class TypingInput extends React.Component {
     filterSuggestions(userInput) {
         let suggestions;
 
-        if (this.state.settings.countryGuess) {
+        if (this.state.hintMode === HINT_MODES.Country) {
             suggestions = COUNTRY_SUGGESTIONS.filter(possibleCountrySuggestion => this.canBeSuggestion(possibleCountrySuggestion, userInput))
         } else {
             suggestions = CAPITAL_SUGGESTIONS.filter(possibleCapitalSuggestion => this.canBeSuggestion(possibleCapitalSuggestion, userInput))
@@ -65,12 +80,13 @@ export class TypingInput extends React.Component {
         this.setState({suggestions});
     }
 
-    multipleChoiceAnswerKeyListener(event) {
-        if (event.key === "Enter" && this.state.suggestions[0] !== undefined) {
-            let countryInput = this.state.countryInput;
-            this.setState({countryInput: ""});
-            this.filterSuggestions(countryInput);
-            this.guess(this.state.suggestions[0].abbreviation);
+    canBeSuggestion(suggestion, userInput) {
+        if (userInput === undefined || userInput === null) {
+            return false;
         }
+
+        const countryInputLoose = generifyInput(userInput);
+
+        return generifyInput(suggestion.countryName).startsWith(countryInputLoose);
     }
 }

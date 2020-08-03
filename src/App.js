@@ -4,7 +4,7 @@ import countries from './countries.json';
 import GuessingMap from "./GuessingMap";
 import MAP_COUNTRIES_TO_GUESS from "./map-countries.json";
 import {shuffleArray} from "./Util";
-import {INPUT_MODES} from "./Enums"
+import {HINT_MODES, INPUT_MODES} from "./Enums"
 import {TypingInput} from "./TypingInput";
 import {MultipleChoiceInput} from "./MultipleChoiceInput";
 
@@ -84,7 +84,6 @@ export default class App extends React.Component {
                             this.setState({country});
                         }
 
-                        console.log(settings.inputMode)
                         this.setState({settings});
                     }}>Cycle through input modes
             </button>
@@ -105,7 +104,7 @@ export default class App extends React.Component {
             <button style={{float: 'right', fontSize: 20}}
                     onClick={() => {
                         let settings = this.state.settings;
-                        settings.countryGuess = !settings.countryGuess;
+                        settings.countryGuess = settings.countryGuess + 1 % 2;
                         this.setState({settings});
                     }}>Toggle Country/Capital Input
             </button>
@@ -121,7 +120,10 @@ export default class App extends React.Component {
                     guess={this.guess}
                 />
             case INPUT_MODES.Typing:
-                return <TypingInput/>
+                return <TypingInput
+                    hintMode={this.state.countryGuess ?  HINT_MODES.Capital : HINT_MODES.Country}
+                    guess={this.guess}
+                />
             case INPUT_MODES.MapClick:
                 return <div style={{border: '20px solid #ffffff'}}>
                     <GuessingMap guess={this.guess} previousCountry={this.state.previousCountry}/>
@@ -198,7 +200,6 @@ export default class App extends React.Component {
 
         this.setState({
             country: nextCountry,
-            choices: this.getChoices(nextCountry),
             score,
             previousCountry,
             countryInput: ""
