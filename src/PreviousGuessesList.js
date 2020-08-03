@@ -16,7 +16,7 @@ export class PreviousGuessesList extends React.Component {
         }
 
         return <div style={{padding: 50}}>
-            <h2>Previous Guesses</h2>
+            <h4>Previous Guesses</h4>
             <ul style={{overflowY: 'scroll', overflow: 'hidden', height: 500}}>
                 {this.state.previousGuesses.reverse().map(guess =>
                     <p>{countries[guess.country].name} {this.getIsCorrectEmoji(guess.isCorrect)}</p>)}

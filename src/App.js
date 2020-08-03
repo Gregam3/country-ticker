@@ -54,10 +54,8 @@ export default class App extends React.Component {
     render() {
         if (this.hasLoaded()) {
             return <div className="App">
-                <p>Score: {this.state.score.correct + '/' + this.state.score.guesses}
-                    &nbsp; ({this.getScorePercentage()})% | Countries
-                    remaining {COUNTRY_COUNT - this.countryIndex}</p>
-                {/*{this.settingsBar()}*/}
+                {this.settingsBar()}
+                {this.getScoreBar()}
                 <div className="country-info-panel">
                     <PreviousGuessesList previousGuesses={this.state.previousGuesses}/>
                     {this.getCountryPanel(this.state.country, false)}
@@ -69,6 +67,12 @@ export default class App extends React.Component {
         } else {
             return <p>Loading...</p>
         }
+    }
+
+    getScoreBar() {
+        return <h1>Score: {this.state.score.correct + '/' + this.state.score.guesses}
+            &nbsp; ({this.getScorePercentage()})% | Countries
+            remaining {COUNTRY_COUNT - this.countryIndex}</h1>;
     }
 
     settingsBar() {
