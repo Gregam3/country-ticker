@@ -108,7 +108,7 @@ export default class App extends React.Component {
             <button style={{float: 'right', fontSize: 20}}
                     onClick={() => {
                         let settings = this.state.settings;
-                        settings.countryGuess = settings.countryGuess + 1 % 2;
+                        settings.countryGuess = !settings.countryGuess;
                         this.setState({settings});
                     }}>Toggle Country/Capital Input
             </button>
