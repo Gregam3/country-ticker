@@ -132,8 +132,7 @@ export default class App extends React.Component {
                 return <div style={{border: '20px solid #ffffff'}}>
                     <GuessingMap guess={this.guess} previousCountry={this.state.previousCountry}/>
                 </div>
-            default:
-                return "";
+            default: return "";
         }
     }
 
@@ -208,6 +207,7 @@ export default class App extends React.Component {
         const previousCountry = this.state.country;
         const nextCountry = this.getNextCountry();
 
+        console.debug("Updating values after guess");
         this.setState({
             country: nextCountry,
             score,
@@ -218,6 +218,7 @@ export default class App extends React.Component {
     }
 
     getNextCountry() {
+        console.debug("Attempting to get next country");
         if (this.countryIndex === COUNTRY_COUNT) {
             this.countryIndex = 0;
             alert("You have completed 1 loop of all countries!")
@@ -226,26 +227,15 @@ export default class App extends React.Component {
 
         let countryShortHand = this.countryIndexMap[this.countryIndex++];
 
-        if (this.state === undefined) {
+        if (this.state === undefined || this.state === null) {
+            return countryShortHand;
+        } else if (this.state.settings.inputMode === INPUT_MODES.MapClick) {
+            return this.getNextMapCountry(countryShortHand);
+        } else if (!this.state.settings.showFlag) {
+            return this.getNextCountryWithCapital(countryShortHand);
+        } else {
             return countryShortHand;
         }
-
-        if (this.state.settings.inputMode === INPUT_MODES.MapClick) {
-            return this.getNextMapCountry(countryShortHand);
-        }
-
-        if (this.state && !this.state.settings.showFlag) {
-            let country = countries[countryShortHand];
-
-            while (true) {
-                this.countryIndex++;
-                if (country.capital === 'No Capital') {
-                    return this.countryIndexMap[this.countryIndex];
-                }
-            }
-        }
-
-        return countryShortHand;
     }
 
     getNextMapCountry(countryShortHand) {
@@ -254,6 +244,18 @@ export default class App extends React.Component {
             countryShortHand = this.countryIndexMap[this.countryIndex];
             if (MAP_COUNTRIES_TO_GUESS.includes(countryShortHand)) {
                 return countryShortHand;
+            }
+        }
+    }
+
+    getNextCountryWithCapital(countryShortHand) {
+        let country = countries[countryShortHand];
+
+        while (true) {
+            console.debug("here")
+            this.countryIndex++;
+            if (country.capital !== "No Capital") {
+                return this.countryIndexMap[this.countryIndex];
             }
         }
     }
