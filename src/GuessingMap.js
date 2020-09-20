@@ -42,7 +42,7 @@ class GuessingMap extends React.Component {
 
     render() {
         return (
-            <ComposableMap data-tip="" projectionConfig={{scale: 200}}>
+            <ComposableMap data-tip="" projectionConfig={{scale: 230}}>
                 <ZoomableGroup>
                     <Geographies geography={geoUrl}>
                         {({geographies}) =>

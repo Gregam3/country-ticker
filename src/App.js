@@ -54,13 +54,17 @@ export default class App extends React.Component {
     render() {
         if (this.hasLoaded()) {
             return <div className="App">
-                {this.settingsBar()}
-                {this.getScoreBar()}
-                <div className="country-info-panel">
+                <div className="col-xs-3">
                     <PreviousGuessesList previousGuesses={this.state.previousGuesses}/>
+                </div>
+                <div className="sticky col-xs-9">
+                    {this.settingsBar()}
+                    {this.getScoreBar()}
+                </div>
+                <div className="country-info-panel">
                     {this.getCountryPanel(this.state.country, false)}
                 </div>
-                <div className="background-color">
+                <div className="background-color col-xs-9">
                     {this.getAnswerInput()}
                 </div>
             </div>
@@ -76,7 +80,7 @@ export default class App extends React.Component {
     }
 
     settingsBar() {
-        return <div>
+        return <div style={{marginTop: 25}}>
             <button style={{float: 'right', fontSize: 20}}
                     onClick={() => {
                         let settings = this.state.settings;
@@ -86,6 +90,10 @@ export default class App extends React.Component {
                             console.log("here")
                             const country = this.getNextMapCountry(this.state.country);
                             this.setState({country});
+                            let settings = this.state.settings;
+                            settings.showFlag = false;
+                            settings.countryGuess = false;
+                            this.setState({settings});
                         }
 
                         this.setState({settings});
@@ -97,13 +105,6 @@ export default class App extends React.Component {
                         settings.showFlag = !settings.showFlag;
                         this.setState({settings});
                     }}>Toggle show flag
-            </button>
-            <button style={{float: 'right', fontSize: 20}}
-                    onClick={() => {
-                        let settings = this.state.settings;
-                        settings.showPreviousCountry = !settings.showPreviousCountry;
-                        this.setState({settings});
-                    }}>Toggle previous country view
             </button>
             <button style={{float: 'right', fontSize: 20}}
                     onClick={() => {
@@ -125,14 +126,15 @@ export default class App extends React.Component {
                 />
             case INPUT_MODES.Typing:
                 return <TypingInput
-                    hintMode={this.state.countryGuess ? HINT_MODES.Capital : HINT_MODES.Country}
+                    hintMode={this.state.settings.countryGuess ? HINT_MODES.Country : HINT_MODES.Capital}
                     guess={this.guess}
                 />
             case INPUT_MODES.MapClick:
-                return <div style={{border: '20px solid #ffffff'}}>
+                return <div>
                     <GuessingMap guess={this.guess} previousCountry={this.state.previousCountry}/>
                 </div>
-            default: return "";
+            default:
+                return "";
         }
     }
 
@@ -181,7 +183,7 @@ export default class App extends React.Component {
             return 0;
         }
 
-        return (this.state.score.correct / this.state.score.guesses) * 100;
+        return ((this.state.score.correct / this.state.score.guesses) * 100).toFixed(2);
     }
 
     hasLoaded() {
@@ -203,11 +205,9 @@ export default class App extends React.Component {
         let previousGuesses = this.state.previousGuesses;
         previousGuesses.push({country: this.state.country, isCorrect});
 
-        console.log(previousGuesses)
         const previousCountry = this.state.country;
         const nextCountry = this.getNextCountry();
 
-        console.debug("Updating values after guess");
         this.setState({
             country: nextCountry,
             score,
@@ -218,20 +218,22 @@ export default class App extends React.Component {
     }
 
     getNextCountry() {
-        console.debug("Attempting to get next country");
         if (this.countryIndex === COUNTRY_COUNT) {
             this.countryIndex = 0;
             alert("You have completed 1 loop of all countries!")
             this.populateCountryIndexMap();
         }
 
-        let countryShortHand = this.countryIndexMap[this.countryIndex++];
+        let countryShortHand = this.countryIndexMap[++this.countryIndex];
 
         if (this.state === undefined || this.state === null) {
+            console.log("Getting first country");
             return countryShortHand;
         } else if (this.state.settings.inputMode === INPUT_MODES.MapClick) {
+            console.log("Getting map country");
             return this.getNextMapCountry(countryShortHand);
         } else if (!this.state.settings.showFlag) {
+            console.log("Getting country with capital");
             return this.getNextCountryWithCapital(countryShortHand);
         } else {
             return countryShortHand;
@@ -239,24 +241,27 @@ export default class App extends React.Component {
     }
 
     getNextMapCountry(countryShortHand) {
-        while (true) {
-            this.countryIndex++;
-            countryShortHand = this.countryIndexMap[this.countryIndex];
+        while (this.countryIndex < COUNTRY_COUNT) {
             if (MAP_COUNTRIES_TO_GUESS.includes(countryShortHand)) {
                 return countryShortHand;
+            } else {
+                console.log(countryShortHand + " is not a country on the map")
             }
+            countryShortHand = this.countryIndexMap[++this.countryIndex];
         }
     }
 
     getNextCountryWithCapital(countryShortHand) {
         let country = countries[countryShortHand];
 
-        while (true) {
-            console.debug("here")
-            this.countryIndex++;
+        while (this.countryIndex < COUNTRY_COUNT) {
+            country = countries[this.countryIndexMap[this.countryIndex]];
             if (country.capital !== "No Capital") {
                 return this.countryIndexMap[this.countryIndex];
+            } else {
+                console.log(this.countryIndexMap[this.countryIndex] + " is not a country with a capital")
             }
+            this.countryIndex++;
         }
     }
 }

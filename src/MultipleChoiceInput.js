@@ -4,6 +4,7 @@ import {COUNTRY_COUNT} from "./App";
 
 const CHOICE_COUNT = 8;
 
+
 export class MultipleChoiceInput extends React.Component {
     constructor(props) {
         super(props);
@@ -17,7 +18,7 @@ export class MultipleChoiceInput extends React.Component {
     }
 
     componentWillMount() {
-        document.addEventListener("keydown", this.multipleChoiceAnswerKeyListener.bind(this));
+        // document.addEventListener("keydown", this.multipleChoiceAnswerKeyListener.bind(this));
     }
 
     componentWillReceiveProps(nextProps, oldProps) {
@@ -29,12 +30,12 @@ export class MultipleChoiceInput extends React.Component {
             let choiceIndex = 1;
             return <div className="answers">
                 {this.state.choices.map(countryChoice => <button
-                    style={{fontSize: '50px', width: '50%', float: 'left', height: '100px'}}
+                    style={{fontSize: '35px', width: '50%', float: 'left', height: '100px'}}
                     onClick={() => {
                         this.guess(countryChoice);
                     }
                     }>
-                    {'[' + choiceIndex++ + '] ' + this.getDisplayValueForCountry(countryChoice)}</button>)}
+                    {this.getDisplayValueForCountry(countryChoice)}</button>)}
             </div>;
         }
 
@@ -80,7 +81,7 @@ export class MultipleChoiceInput extends React.Component {
         if (count === 1) {
             return countryShortHands[0];
         } else {
-            return countryShortHands;
+            return countryShortHands
         }
     }
 }

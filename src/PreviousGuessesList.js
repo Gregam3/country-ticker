@@ -15,11 +15,18 @@ export class PreviousGuessesList extends React.Component {
             return <p>Loading...</p>;
         }
 
-        return <div style={{padding: 50}}>
-            <h4>Previous Guesses</h4>
-            <ul style={{overflowY: 'scroll', overflow: 'hidden', height: 500}}>
-                {this.state.previousGuesses.reverse().map(guess =>
-                    <p>{countries[guess.country].name} {this.getIsCorrectEmoji(guess.isCorrect)}</p>)}
+        return <div style={{padding: 50, fontSize: '35px', height: window.innerHeight, overflowY: 'scroll'}}>
+            <h1><b>Previous Guesses</b></h1>
+            <ul style={{overflowY: 'scroll', overflow: 'hidden'}}>
+                {this.state.previousGuesses.reverse().map(guess => {
+                    let country = countries[guess.country];
+
+                    if (country) {
+                        return <p>{country.name} {this.getIsCorrectEmoji(guess.isCorrect)}</p>
+                    }
+
+                    return "";
+                })}
             </ul>
         </div>;
     }
