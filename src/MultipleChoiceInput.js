@@ -13,8 +13,6 @@ export class MultipleChoiceInput extends React.Component {
         this.state = {
             choices: this.getChoices(props.answer)
         }
-
-        console.log("here")
     }
 
     componentWillMount() {
@@ -27,7 +25,6 @@ export class MultipleChoiceInput extends React.Component {
 
     render() {
         if (this.state.choices !== undefined) {
-            let choiceIndex = 1;
             return <div className="answers">
                 {this.state.choices.map(countryChoice => <button
                     style={{fontSize: '35px', width: '50%', float: 'left', height: '100px'}}
@@ -40,15 +37,6 @@ export class MultipleChoiceInput extends React.Component {
         }
 
         return <p>Loading...</p>;
-    }
-
-
-    multipleChoiceAnswerKeyListener(event) {
-        let key = event.key * 1;
-
-        if (key > 0 && key <= CHOICE_COUNT) {
-            this.guess(this.state.choices[key - 1]);
-        }
     }
 
     getChoices(correctAnswer) {
