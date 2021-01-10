@@ -34,6 +34,10 @@ export class TypingInput extends React.Component {
         document.addEventListener("keydown", this.suggestionInputListener.bind(this));
     }
 
+    componentWillReceiveProps(nextProps, oldProps) {
+        this.setState({hintMode: nextProps.hintMode});
+    }
+
     suggestionInputListener(event) {
         if (event.key === "Enter" && this.state.suggestions[0] !== undefined) {
             let countryInput = this.state.countryInput;
